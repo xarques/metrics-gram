@@ -1,7 +1,23 @@
-# This file should contain all the record creation needed to seed the database with its default values.
-# The data can then be loaded with the rails db:seed command (or created alongside the database with db:setup).
-#
-# Examples:
-#
-#   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
-#   Character.create(name: 'Luke', movie: movies.first)
+require "open-uri"
+require "yaml"
+
+# Dir.foreach("db/locations") do |file|
+#   file_path = "db/locations/#{file}"
+#   if file_path.end_with?(".yml") && File.file?(file_path)
+#     location = YAML.load(open(file_path).read)
+#     c = Location.create!(location)
+#     puts "  Add Locations #{file}: #{c.city}"
+#   end
+# end
+
+Location.destroy_all
+# 1 Roles
+puts "Creating locations..."
+file = "db/locations.yml"
+locations = YAML.load(open(file).read)
+
+locations["locations"].each do |location|
+  l = Location.create!(location)
+  puts "  Add Location: #{l.city}"
+end
+puts "#{Location.count} locations have been created"

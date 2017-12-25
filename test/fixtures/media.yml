@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  shortcode: MyString
+  taken_at_timestamp: 2017-12-23
+  display_url: MyString
+
+two:
+  shortcode: MyString
+  taken_at_timestamp: 2017-12-23
+  display_url: MyString

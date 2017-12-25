@@ -1,0 +1,23 @@
+<div class="container">
+  <div class="row">
+    <% @media.each do |medium| %>
+      <% account = medium[:account] %>
+      <% if account %>
+        <div class="col-xs-12 col-sm-6">
+          <div class="card" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.2)), url('<%#= account.profile_pic_url %>');">
+            <div class="card-category"><%= account.followed_by.count %> followers | <%= account.follows.count %> following</div>
+            <div class="card-title">
+              <h4>@<%= account.username %></h4>
+              <h4><%= account.full_name.strip if account.full_name %></h4>
+            </div>
+            <div class="card-bio">
+              <p><%= account.biography %></p>
+            </div>
+            <img class="card-user" src="<%= account.profile_pic_url %>">
+            <a class="card-link" href="https://www.instagram.com/<%= account.username %>" ></a>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>

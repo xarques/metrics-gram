@@ -8,8 +8,11 @@
 @import "bootstrap";
 @import "font-awesome-sprockets";
 @import "font-awesome";
+@import "selectize/dist/css/selectize";
+@import "selectize/dist/css/selectize.default";
 
 // Your CSS partials
 @import "layouts/index";
 @import "components/index";
 @import "pages/index";
+
