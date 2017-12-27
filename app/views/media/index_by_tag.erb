@@ -1,18 +1,22 @@
 <div class="container">
   <div class="row">
     <% if @media && @media.any? %>
-      <% @media.each do |medium| %>
+      <p>Average of likes <%= @media[:likes_average] %> </p>
+      <% @media[:edges_by_tags].each do |medium| %>
         <div class="col-xs-12 col-sm-6">
           <div class="card" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.2)), url('<%= medium.node.display_url %>');">
             <div class="card-category"><%= medium.node.edge_liked_by.count %> likes | <%= medium.node.edge_media_to_comment.count %> comments</div>
-            <div class="card-title">
+            <!-- <div class="card-title">
               <h4>@<%#= account.username %></h4>
               <h4><%#= account.full_name.strip if account.full_name %></h4>
-            </div>
+            </div> -->
             <div class="card-bio">
-              <p><%#= account.biography %></p>
+              <% begin %>
+                <p><%= medium.node.edge_media_to_caption.edges[0].node.text %></p>
+              <% rescue %>
+              <% end %>
             </div>
-            <img class="card-user" src="<%#= account.profile_pic_url %>">
+            <!-- <img class="card-user" src="<%#= account.profile_pic_url %>"> -->
             <a class="card-link" href="https://www.instagram.com/p/<%= medium.node.shortcode %>" ></a>
           </div>
         </div>

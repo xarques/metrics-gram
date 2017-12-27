@@ -5,9 +5,18 @@ class MediaController < ApplicationController
   def index_by_tag
     @media = policy_scope(Medium)
     tags = params["query"]["tags"]
+    if params["query"]["limit"]
+      limit = params["query"]["limit"].to_i
+    end
     if tags && tags.any?
-      puts("tags == #{tags[0].split(',')}")
-      @media = search_media_by_tags(tags[0].split(','))
+      tags_array = tags[0].split(',')
+      puts("tags == #{tags_array}")
+      top_posts = params["query"]["top_posts"]
+      if top_posts && top_posts == "1"
+        @media = search_top_posts_media_by_tags(tags_array, limit)
+      else
+        @media = search_media_by_tags(tags_array, limit)
+      end
     end
   end
 

@@ -67,34 +67,62 @@ module InstagramHelper
   SUGGESTED_USERS_QUERY_ID = 17847560125201451
   # https://www.instagram.com/graphql/query/?query_id=17847560125201451&variables={%22fetch_media_count%22:0,%22fetch_suggested_count%22:20,%22ignore_cache%22:false,%22filter_followed_friends%22:true,%22seen_ids%22:[%22242903682%22,%221720416472%22,%2226669533%22,%22189393625%22,%22460563723%22,%221599570543%22,%22363329733%22,%221510284329%22,%2225025320%22,%221963045040%22,%22244520920%22,%2215111621%22,%22206851755%22,%22181712705%22,%22247944034%22,%228630260%22,%22186901415%22,%22179444312%22,%22220231255%22,%221387660581%22,%221809062259%22,%22397934240%22,%22671139752%22,%221282864537%22,%222030900651%22,%22349733985%22,%22406481723%22,%22201482203%22,%22640806256%22,%22299323636%22,%22270739417%22,%22263110431%22,%223503951%22,%2211830955%22,%22227497518%22,%22354360218%22,%221743025989%22,%22414062878%22,%22376027101%22,%221329154464%22]}
 
-  def get_entry_data(url)
-    begin
-      agent = Mechanize.new
-      page = agent.get(url)
-      match = agent.page.search("script").text.scan(/\{"activity_counts".*true\}/)
-      instagram_object = JSON.parse(match[0]);
-      openstruct_obj = RecursiveOpenStruct.new(instagram_object, recurse_over_arrays: true )
-      return openstruct_obj.entry_data
-    rescue
-      return nil
-    end
-  end
+  # def get_entry_data(url)
+  #   begin
+  #     agent = Mechanize.new
+  #     page = agent.get(url)
+  #     match = agent.page.search("script").text.scan(/\{"activity_counts".*true\}/)
+  #     instagram_object = JSON.parse(match[0]);
+  #     openstruct_obj = RecursiveOpenStruct.new(instagram_object, recurse_over_arrays: true )
+  #     return openstruct_obj.entry_data
+  #   rescue
+  #     return nil
+  #   end
+  # end
+
+  # def get_instagram_account_by_shortcode_media0(shortcode_media)
+  #   entry_data = get_entry_data("#{INSTAGRAM_URL}/p/#{shortcode_media}")
+  #   if entry_data
+  #     owner = get_instagram_account(entry_data.PostPage[0].graphql.shortcode_media.owner)
+  #     # No bio available. Research account by name to retrieve the bio
+  #     return get_instagram_account_by_name(owner[:username])
+  #   else
+  #     return nil
+  #   end
+  # end
 
   def get_instagram_account_by_shortcode_media(shortcode_media)
-    entry_data = get_entry_data("#{INSTAGRAM_URL}/p/#{shortcode_media}")
-    if entry_data
-      owner = get_instagram_account(entry_data.PostPage[0].graphql.shortcode_media.owner)
-      # No bio available. Research account by name to retrieve the bio
+    query = "#{INSTAGRAM_URL}/p/#{shortcode_media}/?__a=1"
+    puts ("get_instagram_account_by_shortcode_media(#{shortcode_media}) query = #{query}")
+    openstruct_obj = get_graphql_data(query, "graphql")
+    # puts ("get_instagram_account_by_shortcode_media(#{shortcode_media}) openstruct_obj = #{openstruct_obj}")
+    if openstruct_obj
+      owner = get_instagram_account(openstruct_obj.shortcode_media.owner)
       return get_instagram_account_by_name(owner[:username])
     else
       return nil
     end
   end
 
+  # def get_instagram_account_by_name0(name)
+  #   entry_data = get_entry_data("#{INSTAGRAM_URL}/#{name}")
+  #   if entry_data
+  #     return get_instagram_account(entry_data.ProfilePage[0].user)
+  #   else
+  #     return nil
+  #   end
+  # end
+
+  def get_average_of_likes_by_username(name, number_of_media)
+
+  end
+
   def get_instagram_account_by_name(name)
-    entry_data = get_entry_data("#{INSTAGRAM_URL}/#{name}")
-    if entry_data
-      return get_instagram_account(entry_data.ProfilePage[0].user)
+    query = "#{INSTAGRAM_URL}/#{name}/?__a=1"
+    puts ("get_instagram_account_by_name(#{name}) query = #{query}")
+    openstruct_obj = get_graphql_data(query, "user")
+    if openstruct_obj
+      return get_instagram_account(openstruct_obj)
     else
       return nil
     end
@@ -113,12 +141,12 @@ module InstagramHelper
     return instagram_user
   end
 
-  def get_graphql_data(url)
+  def get_graphql_data(url, object_name="data")
     begin
       uri = URI(url)
       response = Net::HTTP.get(uri)
       response_json = JSON.parse(response)
-      return RecursiveOpenStruct.new(response_json["data"], recurse_over_arrays: true )
+      return RecursiveOpenStruct.new(response_json[object_name], recurse_over_arrays: true )
     rescue
       return nil
     end
@@ -149,6 +177,9 @@ module InstagramHelper
       if account && keyword && !keyword.empty?
         if account[:biography] && (account[:biography].downcase =~ /#{keyword}/)
           accounts << account
+          puts("Keyword #{keyword} found in bio of #{account.username}")
+        else
+          puts("Keyword #{keyword} not found in bio of #{account.username}")
         end
       end
     end
@@ -176,26 +207,39 @@ module InstagramHelper
     return nil
   end
 
+
   def search_media_by_tags(tags, limit=MAX_NUMBER_OF_MEDIA)
-    query = "https://www.instagram.com/graphql/query/?query_id=#{HASHTAG_QUERY_ID}&variables={\"tag_name\":\"#{tags[0]}\",\"first\":#{limit}}"
-    puts ("search_media_by_tag query = #{query}")
-    openstruct_obj = get_graphql_data(query)
-    parse_media_by_tags(openstruct_obj, tags)
+    _search_media_by_tags(tags, "edge_hashtag_to_media", limit)
   end
 
-  def parse_media_by_tags(data, tags)
+  def search_top_posts_media_by_tags(tags, limit=MAX_NUMBER_OF_MEDIA)
+    _search_media_by_tags(tags, "edge_hashtag_to_top_posts", limit)
+  end
+
+  def _search_media_by_tags(tags, edge_name, limit=MAX_NUMBER_OF_MEDIA)
+    query = "https://www.instagram.com/graphql/query/?query_id=#{HASHTAG_QUERY_ID}&variables={\"tag_name\":\"#{tags[0]}\",\"first\":#{limit}}"
+    puts ("search_media_by_tag #{edge_name} query = #{query}")
+    openstruct_obj = get_graphql_data(query)
+    parse_media_by_tags(openstruct_obj, tags, edge_name)
+  end
+
+  def parse_media_by_tags(data, tags, edge_name)
     if data
       hashtag = data.hashtag
       edges_by_tags = []
       if hashtag
-        count = hashtag.edge_hashtag_to_media.count
-        edges = hashtag.edge_hashtag_to_media.edges
+        count = hashtag[edge_name].count
+        edges = hashtag[edge_name].edges
+        total_likes = 0
+        number_of_edges_found = 0
         puts ("Number of media available on this page: #{edges.size}/#{count}")
         edges.each do |edge|
           begin
             media_to_caption_text = edge.node.edge_media_to_caption.edges[0].node.text
             # puts("media_to_caption_text= #{media_to_caption_text}")
             all_tags = true
+            # Revome first tag of tags as it as already been taken into account for the first query
+            tags.pop
             tags.each do |tag|
               if media_to_caption_text.downcase =~ /##{tag.downcase}/
                 puts "Media #{edge.node.shortcode} contains tag #{tag.downcase}"
@@ -205,14 +249,19 @@ module InstagramHelper
               end
             end
             if all_tags
+              number_of_edges_found += 1
               edges_by_tags << edge
+              total_likes += edge.node.edge_liked_by.count
             end
           rescue
 
           end
         end
         # puts("edges_by_tags = #{edges_by_tags}")
-        return edges_by_tags
+        return {
+          edges_by_tags: edges_by_tags,
+          likes_average: total_likes / number_of_edges_found
+        }
       end
     end
     puts ("No media")

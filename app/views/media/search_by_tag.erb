@@ -1,10 +1,12 @@
 <div class="container-fluid">
   <div class="row">
     <div class="col-md-6 col-md-offset-3">
-      <h1>Search Instagram users by tags</h1>
+      <h1>Search Instagram media by tags</h1>
       <%= simple_form_for(Medium.new, :url => index_by_tag_media_path, :method => :get) do |f| %>
         <%= simple_fields_for :query do |o| %>
+          <%= o.input :top_posts, as: :boolean, label: 'Search in top posts only' %>
           <%= o.input :tags, as: :string, label: 'Tags', collection: [], input_html: {multiple: true}, class: "selectized" %>
+          <%= o.input :limit, as: :integer, label: 'Max number of media to search in' %>
         <% end %>
         <%= f.submit 'Search' , class: "btn btn-primary" %>
       <% end %>
