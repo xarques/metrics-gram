@@ -49,7 +49,8 @@ module InstagramHelper
   MAX_NUMBER_OF_TIMELINES = 5
   MAX_NUMBER_OF_COMMENTS = 5
   MAX_NUMBER_OF_LIKES = 5
-  MAX_NUMBER_OF_MEDIA = 100
+  MAX_NUMBER_OF_MEDIA = 10
+  MAX_NUMBER_OF_ACCOUNTS = 10
   # QUERY_URL = "\"https://www.instagram.com/graphql/query/?query_id=#{query_id}&variables={\"shortcode\":\"#{shortcode}\",\"first\":10}\""
   # https://www.instagram.com/graphql/query/?query_id=17888483320059182&variables=%7B%22id%22%3A%223041781563%22%2C%22first%22%3A12%2C%22after%22%3A%22AQCNCnVfNu1IYxbaJLQAjflo1WnjuRYTbS2pJ05cyzMMwHg7O_9Pc80PRNqpnwfYIpSmHx9xT5vB2EE9yUCc6x9W27qKLlKfDsqiL0eq12AuiQ%22%7D
   # def parse_html(url)
@@ -61,8 +62,7 @@ module InstagramHelper
   #   post_pages.each do |post_page|
   #     parse_data(post_page["graphql"])
   #   end
-  # end
-  TAG_QUERY_ID = 17886322183179102
+  HASHTAG_QUERY_ID = 17886322183179102
   # https://www.instagram.com/graphql/query/?query_id=17886322183179102&variables={"tag_name":"urbex","first":5}
   SUGGESTED_USERS_QUERY_ID = 17847560125201451
   # https://www.instagram.com/graphql/query/?query_id=17847560125201451&variables={%22fetch_media_count%22:0,%22fetch_suggested_count%22:20,%22ignore_cache%22:false,%22filter_followed_friends%22:true,%22seen_ids%22:[%22242903682%22,%221720416472%22,%2226669533%22,%22189393625%22,%22460563723%22,%221599570543%22,%22363329733%22,%221510284329%22,%2225025320%22,%221963045040%22,%22244520920%22,%2215111621%22,%22206851755%22,%22181712705%22,%22247944034%22,%228630260%22,%22186901415%22,%22179444312%22,%22220231255%22,%221387660581%22,%221809062259%22,%22397934240%22,%22671139752%22,%221282864537%22,%222030900651%22,%22349733985%22,%22406481723%22,%22201482203%22,%22640806256%22,%22299323636%22,%22270739417%22,%22263110431%22,%223503951%22,%2211830955%22,%22227497518%22,%22354360218%22,%221743025989%22,%22414062878%22,%22376027101%22,%221329154464%22]}
@@ -124,6 +124,37 @@ module InstagramHelper
     end
   end
 
+  def search_media_by_location_and_keyword(location_id, keyword, limit=MAX_NUMBER_OF_MEDIA)
+    media_by_location = search_media_by_location(location_id, limit)
+    media = []
+    media_by_location.each do |medium|
+      account = get_instagram_account_by_shortcode_media(medium.node.shortcode)
+      if account && keyword && !keyword.empty?
+        if account[:biography] && (account[:biography].downcase =~ /#{keyword}/)
+          medium[:account] = account
+          media << medium
+        end
+      else
+        media << medium
+      end
+    end
+    return media
+  end
+
+  def search_account_by_location_and_keyword(location_id, keyword, limit=MAX_NUMBER_OF_ACCOUNTS)
+    media_by_location = search_media_by_location(location_id, limit)
+    accounts = []
+    media_by_location.each do |medium|
+      account = get_instagram_account_by_shortcode_media(medium.node.shortcode)
+      if account && keyword && !keyword.empty?
+        if account[:biography] && (account[:biography].downcase =~ /#{keyword}/)
+          accounts << account
+        end
+      end
+    end
+    return accounts
+  end
+
   def search_media_by_location(location_id, limit=MAX_NUMBER_OF_MEDIA)
     query = "https://www.instagram.com/graphql/query/?query_id=#{LOCATION_TO_MEDIA_QUERY_ID}&variables={\"id\":\"#{location_id}\",\"first\":#{limit}}"
     puts ("search_media_by_location query = #{query}")
@@ -145,21 +176,43 @@ module InstagramHelper
     return nil
   end
 
-  def search_media_by_tag(tag, limit=MAX_NUMBER_OF_MEDIA)
-    query = "https://www.instagram.com/graphql/query/?query_id=#{TAG_QUERY_ID}&variables={\"tag_name\":\"#{tag}\",\"first\":#{limit}}"
+  def search_media_by_tags(tags, limit=MAX_NUMBER_OF_MEDIA)
+    query = "https://www.instagram.com/graphql/query/?query_id=#{HASHTAG_QUERY_ID}&variables={\"tag_name\":\"#{tags[0]}\",\"first\":#{limit}}"
     puts ("search_media_by_tag query = #{query}")
     openstruct_obj = get_graphql_data(query)
-    parse_media_by_tag(openstruct_obj)
+    parse_media_by_tags(openstruct_obj, tags)
   end
 
-  def parse_media_by_tag(data)
+  def parse_media_by_tags(data, tags)
     if data
       hashtag = data.hashtag
+      edges_by_tags = []
       if hashtag
         count = hashtag.edge_hashtag_to_media.count
         edges = hashtag.edge_hashtag_to_media.edges
         puts ("Number of media available on this page: #{edges.size}/#{count}")
-        return edges
+        edges.each do |edge|
+          begin
+            media_to_caption_text = edge.node.edge_media_to_caption.edges[0].node.text
+            # puts("media_to_caption_text= #{media_to_caption_text}")
+            all_tags = true
+            tags.each do |tag|
+              if media_to_caption_text.downcase =~ /##{tag.downcase}/
+                puts "Media #{edge.node.shortcode} contains tag #{tag.downcase}"
+              else
+                puts "Media #{edge.node.shortcode} does not contain tag #{tag.downcase}"
+                all_tags = false
+              end
+            end
+            if all_tags
+              edges_by_tags << edge
+            end
+          rescue
+
+          end
+        end
+        # puts("edges_by_tags = #{edges_by_tags}")
+        return edges_by_tags
       end
     end
     puts ("No media")

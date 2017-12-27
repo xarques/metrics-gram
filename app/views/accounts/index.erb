@@ -1,8 +1,7 @@
 <div class="container">
   <div class="row">
-    <% @media.each do |medium| %>
-      <% account = medium[:account] %>
-      <% if account %>
+    <% if @accounts && @accounts.any? %>
+      <% @accounts.each do |account| %>
         <div class="col-xs-12 col-sm-6">
           <div class="card" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.2)), url('<%#= account.profile_pic_url %>');">
             <div class="card-category"><%= account.followed_by.count %> followers | <%= account.follows.count %> following</div>
@@ -18,6 +17,8 @@
           </div>
         </div>
       <% end %>
+    <% else %>
+      <p>No account available</p>
     <% end %>
   </div>
 </div>

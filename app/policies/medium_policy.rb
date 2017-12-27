@@ -12,4 +12,8 @@ class MediumPolicy < ApplicationPolicy
   def search?
     true
   end
+
+  def search_by_tag?
+    true
+  end
 end

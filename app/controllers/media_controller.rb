@@ -1,42 +1,17 @@
 class MediaController < ApplicationController
   include InstagramHelper
-  skip_before_action :authenticate_user!, only: [:index, :search]
-  def index
+  skip_before_action :authenticate_user!, only: [:index_by_tag, :search, :search_by_tag]
+
+  def index_by_tag
     @media = policy_scope(Medium)
     tags = params["query"]["tags"]
     if tags && tags.any?
-      search_media_by_tag(tags[0])
-    end
-    locations = Location.where(city: params["query"]["city"])
-    if params["query"]["keyword"]
-      keyword = params["query"]["keyword"].downcase
-    end
-    if params["query"]["limit"]
-      limit = params["query"]["limit"].to_i
-    end
-    if locations.any?
-      @location = locations.first
-      if limit
-        media_by_location = search_media_by_location(@location.instagram_id, limit)
-      else
-        media_by_location = search_media_by_location(@location.instagram_id)
-      end
-      @media = []
-      media_by_location.each do |medium|
-        account = get_instagram_account_by_shortcode_media(medium.node.shortcode)
-        if account && keyword && !keyword.empty?
-          if account[:biography] && (account[:biography].downcase =~ /#{keyword}/)
-            medium[:account] = account
-            @media << medium
-          end
-        else
-          @media << medium
-        end
-      end
+      puts("tags == #{tags[0].split(',')}")
+      @media = search_media_by_tags(tags[0].split(','))
     end
   end
 
-  def search
+  def search_by_tag
     @locations = policy_scope(Location)
     # @media = policy_scope(Medium)
     # authorize Medium.new
