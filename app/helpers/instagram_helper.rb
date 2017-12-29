@@ -113,8 +113,14 @@ module InstagramHelper
   #   end
   # end
 
-  def get_average_of_likes_by_username(name, number_of_media)
-
+  def get_average_of_likes_by_username(name)
+    account = get_instagram_account_by_name(name)
+    media = account.media.nodes
+    total_likes = 0
+    media.each do |medium|
+      total_likes += medium.likes.count
+    end
+    return total_likes / media.size
   end
 
   def get_instagram_account_by_name(name)

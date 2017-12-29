@@ -17,6 +17,7 @@ class MediaController < ApplicationController
       else
         @media = search_media_by_tags(tags_array, limit)
       end
+      @user_average_likes = get_average_of_likes_by_username(current_user.instagram_user)
     end
   end
 
