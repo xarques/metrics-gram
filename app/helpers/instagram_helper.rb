@@ -120,7 +120,7 @@ module InstagramHelper
     media.each do |medium|
       total_likes += medium.likes.count
     end
-    return total_likes / media.size
+    return media.size != 0 ? total_likes / media.size : 0
   end
 
   def get_instagram_account_by_name(name)
