@@ -1,15 +1,15 @@
-class MediumPolicy < ApplicationPolicy
+class AccountPolicy < ApplicationPolicy
   class Scope < Scope
     def resolve
       scope.all
     end
   end
 
-  def index_by_tag?
+  def index?
     true
   end
 
-  def search_by_tag?
+  def search?
     true
   end
 end

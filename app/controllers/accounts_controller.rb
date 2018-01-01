@@ -1,9 +1,10 @@
 class AccountsController < ApplicationController
   include InstagramHelper
-  skip_before_action :authenticate_user!, only: [:index, :search]
+  # skip_before_action :authenticate_user!, only: [:index, :search]
 
   def index
-    @accounts = policy_scope(Medium)
+    # @accounts = policy_scope(Account)
+    authorize Account.new
     locations = Location.where(city: params["query"]["city"])
     if params["query"]["keyword"]
       keyword = params["query"]["keyword"].downcase
@@ -20,7 +21,7 @@ class AccountsController < ApplicationController
   def search
     @locations = policy_scope(Location)
     # @media = policy_scope(Medium)
-    # authorize Medium.new
+    authorize Account.new
   end
 
   private

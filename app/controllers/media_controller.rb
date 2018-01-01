@@ -1,9 +1,10 @@
 class MediaController < ApplicationController
   include InstagramHelper
-  skip_before_action :authenticate_user!, only: [:index_by_tag, :search, :search_by_tag]
+  # skip_before_action :authenticate_user!, only: [:index_by_tag, :search, :search_by_tag]
 
   def index_by_tag
     @media = policy_scope(Medium)
+    authorize Medium.new
     tags = params["query"]["tags"]
     if params["query"]["limit"]
       limit = params["query"]["limit"].to_i
@@ -17,14 +18,14 @@ class MediaController < ApplicationController
       else
         @media = search_media_by_tags(tags_array, limit)
       end
-      @user_average_likes = get_average_of_likes_by_username(current_user.instagram_user)
+      @user_average_likes = get_average_of_likes_by_username(current_user.username)
     end
   end
 
   def search_by_tag
     @locations = policy_scope(Location)
     # @media = policy_scope(Medium)
-    # authorize Medium.new
+    authorize Medium.new
   end
 
   private

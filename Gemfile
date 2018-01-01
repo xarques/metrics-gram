@@ -11,6 +11,7 @@ gem 'redis'
 gem 'pundit'
 gem 'mechanize'
 gem 'recursive-open-struct'
+gem 'omniauth-instagram'
 
 gem 'autoprefixer-rails'
 gem 'bootstrap-sass'
