@@ -1,0 +1,61 @@
+<div class="container">
+  <div class="row">
+    <div id="resp-table">
+      <div id="resp-table-caption">
+        Engagement per hashtag
+      </div>
+      <div id="resp-table-header">
+        <div class="table-header-cell">
+        HashTag
+        </div>
+        <div class="table-header-cell">
+        Followers
+        </div>
+        <div class="table-header-cell">
+        Engagement
+        </div>
+        <div class="table-header-cell">
+        Likes AVG
+        </div>
+        <div class="table-header-cell">
+        Comments AVG
+        </div>
+      </div>
+      <div id="resp-table-body">
+        <% @media_group_by_hashtag.each do |media_by_hashtag| %>
+          <div class="resp-table-row">
+            <div class="table-body-cell">
+              <%= media_by_hashtag[:hashtag_name] %>
+            </div>
+            <div class="table-body-cell">
+              <%= media_by_hashtag[:count] %>
+            </div>
+            <div class="table-body-cell">
+              <%= media_by_hashtag[:engagement_average] %>
+            </div>
+            <div class="table-body-cell">
+              <%= media_by_hashtag[:likes_average] %>
+            </div>
+            <div class="table-body-cell">
+              <%= media_by_hashtag[:comments_average] %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+      <!-- <div id="resp-table-footer">
+        <div class="table-footer-cell">
+        Footer 1
+        </div>
+        <div class="table-footer-cell">
+        Footer 2
+        </div>
+        <div class="table-footer-cell">
+        Footer 3
+        </div>
+      </div> -->
+      <%# @media_group_by_hashtag.each do |media_by_hashtag| %>
+<!--         <div></div>
+ -->      <%# end %>
+    </div>
+  </div>
+</div>

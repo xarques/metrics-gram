@@ -9,6 +9,10 @@ class MediumPolicy < ApplicationPolicy
     true
   end
 
+  def index_by_tags?
+    true
+  end
+
   def search_by_tag?
     true
   end

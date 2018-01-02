@@ -5,6 +5,7 @@
       <%= simple_form_for(Medium.new, :url => index_by_tag_media_path, :method => :get) do |f| %>
         <%= simple_fields_for :query do |o| %>
           <%= o.input :top_posts, as: :boolean, label: 'Search in top posts only', :input_html => { :checked => true } %>
+          <%= o.input :one_by_one, as: :boolean, label: 'Search tag one by one', :input_html => { :checked => true } %>
           <%= o.input :tags, as: :string, label: 'Tags', collection: [], input_html: {multiple: true}, class: "selectized" %>
           <%= o.input :limit, as: :integer, label: 'Max number of media to search in' %>
         <% end %>

@@ -10,15 +10,22 @@ class MediaController < ApplicationController
       limit = params["query"]["limit"].to_i
     end
     if tags && tags.any?
-      tags_array = tags[0].split(',')
-      puts("tags == #{tags_array}")
+      @tags_array = tags[0].split(',')
+      puts("tags == #{@tags_array}")
       top_posts = params["query"]["top_posts"]
-      if top_posts && top_posts == "1"
-        @media = search_top_posts_media_by_tags(tags_array, limit)
+      one_by_one = params["query"]["one_by_one"]
+      if one_by_one && one_by_one == "0"
+        if top_posts && top_posts == "1"
+          @media = search_top_posts_media_by_tags(@tags_array, limit)
+        else
+          @media = search_media_by_tags(@tags_array, limit)
+        end
+        @user_averages = get_average_of_engagement_by_username(current_user.username)
+        render :index_by_tag
       else
-        @media = search_media_by_tags(tags_array, limit)
+        @media_group_by_hashtag = sort_top_posts_media_for_each_tag_by_engagement_ratio(@tags_array, current_user.username)
+        render :index_by_tags
       end
-      @user_average_likes = get_average_of_likes_by_username(current_user.username)
     end
   end
 

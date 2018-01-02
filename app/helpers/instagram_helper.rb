@@ -113,6 +113,30 @@ module InstagramHelper
   #   end
   # end
 
+  def get_average_of_engagement_by_username(name)
+    account = get_instagram_account_by_name(name)
+    begin
+      media = account.media.nodes
+      total_likes = 0
+      total_comments = 0
+      media.each do |medium|
+        total_likes += medium.likes.count
+        total_comments += medium.comments.count
+      end
+      return {
+        likes_average: media.size != 0 ? total_likes / media.size : 0,
+        comments_average: media.size != 0 ? total_comments / media.size : 0,
+        engagement_average: media.size != 0 ? (total_likes + total_comments) / media.size : 0
+      }
+    rescue
+      return {
+        likes_average: 0,
+        comments_average: 0,
+        engagement_average: 0
+      }
+    end
+  end
+
   def get_average_of_likes_by_username(name)
     account = get_instagram_account_by_name(name)
     media = account.media.nodes
@@ -213,6 +237,12 @@ module InstagramHelper
     return nil
   end
 
+  def clean_tags(tags)
+    tags.collect do |tag|
+      tag = tag.strip
+      tag.start_with?("#") ? tag[1..-1] : tag
+    end
+  end
 
   def search_media_by_tags(tags, limit=MAX_NUMBER_OF_MEDIA)
     _search_media_by_tags(tags, "edge_hashtag_to_media", limit)
@@ -222,7 +252,22 @@ module InstagramHelper
     _search_media_by_tags(tags, "edge_hashtag_to_top_posts", limit)
   end
 
+  def search_top_posts_media_for_each_tag(tags, limit=MAX_NUMBER_OF_MEDIA)
+    top_posts_media_for_each_tag = []
+    tags.each do |tag|
+      top_posts_media_for_each_tag << _search_media_by_tags([tag], "edge_hashtag_to_top_posts", limit)
+    end
+    top_posts_media_for_each_tag
+  end
+
+  def sort_top_posts_media_for_each_tag_by_engagement_ratio(tags, username)
+    top_posts_media_for_each_tag = search_top_posts_media_for_each_tag(tags)
+    # engagement = get_average_of_engagement_by_username(username)
+    top_posts_media_for_each_tag.sort! { |x,y| x[:engagement_average] <=> y[:engagement_average] }
+  end
+
   def _search_media_by_tags(tags, edge_name, limit=MAX_NUMBER_OF_MEDIA)
+    tags = clean_tags(tags)
     query = "https://www.instagram.com/graphql/query/?query_id=#{HASHTAG_QUERY_ID}&variables={\"tag_name\":\"#{tags[0]}\",\"first\":#{limit}}"
     puts ("search_media_by_tag #{edge_name} query = #{query}")
     openstruct_obj = get_graphql_data(query)
@@ -237,6 +282,7 @@ module InstagramHelper
         count = hashtag[edge_name].count
         edges = hashtag[edge_name].edges
         total_likes = 0
+        total_comments = 0
         number_of_edges_found = 0
         puts ("Number of media available on this page: #{edges.size}/#{count}")
         edges.each do |edge|
@@ -244,7 +290,7 @@ module InstagramHelper
             media_to_caption_text = edge.node.edge_media_to_caption.edges[0].node.text
             # puts("media_to_caption_text= #{media_to_caption_text}")
             all_tags = true
-            # Revome first tag of tags as it as already been taken into account for the first query
+            # Remove first tag of tags as it as already been taken into account for the first query
             tags.pop
             tags.each do |tag|
               if media_to_caption_text.downcase =~ /##{tag.downcase}/
@@ -258,16 +304,26 @@ module InstagramHelper
               number_of_edges_found += 1
               edges_by_tags << edge
               total_likes += edge.node.edge_liked_by.count
+              puts ("Likes for edge #{edge.node.edge_liked_by.count}")
+              total_comments += edge.node.edge_media_to_comment.count
+              puts ("Comments for edge #{edge.node.edge_media_to_comment.count}")
             end
           rescue
 
           end
         end
         # puts("edges_by_tags = #{edges_by_tags}")
-        return {
-          edges_by_tags: edges_by_tags,
-          likes_average: total_likes / number_of_edges_found
+        puts("number_of_edges_found = #{number_of_edges_found}")
+        hash_result = {
+          hashtag_name: hashtag.name,
+          count: hashtag.edge_hashtag_to_media.count,
+          likes_average: total_likes / number_of_edges_found,
+          comments_average: total_comments / number_of_edges_found,
+          engagement_average: (total_likes + total_comments) / number_of_edges_found,
+          edges_by_tags: edges_by_tags
         }
+        puts("hash_result = #{hash_result}")
+        return hash_result
       end
     end
     puts ("No media")
