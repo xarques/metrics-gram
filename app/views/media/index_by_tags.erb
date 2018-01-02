@@ -6,26 +6,30 @@
       </div>
       <div id="resp-table-header">
         <div class="table-header-cell">
-        HashTag
+        HashTag / User
         </div>
         <div class="table-header-cell">
-        Followers
+        Posts
         </div>
         <div class="table-header-cell">
         Engagement
         </div>
         <div class="table-header-cell">
-        Likes AVG
+        Likes Average
         </div>
         <div class="table-header-cell">
-        Comments AVG
+        Comments Average
         </div>
       </div>
       <div id="resp-table-body">
         <% @media_group_by_hashtag.each do |media_by_hashtag| %>
           <div class="resp-table-row">
             <div class="table-body-cell">
-              <%= media_by_hashtag[:hashtag_name] %>
+              <% if media_by_hashtag[:category] == "user" %>
+                <%= link_to "@#{media_by_hashtag[:name]}", media_by_hashtag[:url] %>
+              <% else %>
+                <%= link_to media_by_hashtag[:name], media_by_hashtag[:url] %>
+              <% end %>
             </div>
             <div class="table-body-cell">
               <%= media_by_hashtag[:count] %>
@@ -42,17 +46,18 @@
           </div>
         <% end %>
       </div>
-      <!-- <div id="resp-table-footer">
+      <div id="resp-table-footer">
         <div class="table-footer-cell">
-        Footer 1
         </div>
         <div class="table-footer-cell">
-        Footer 2
         </div>
         <div class="table-footer-cell">
-        Footer 3
         </div>
-      </div> -->
+        <div class="table-footer-cell">
+        </div>
+        <div class="table-footer-cell">
+        </div>
+      </div>
       <%# @media_group_by_hashtag.each do |media_by_hashtag| %>
 <!--         <div></div>
  -->      <%# end %>

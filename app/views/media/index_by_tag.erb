@@ -1,13 +1,65 @@
 <div class="container">
   <div class="row">
     <% if @media && @media.any? %>
-      <h2>Results for tag(s) <strong><%= @media[:likes_average] %></strong></h2>
-      <p>Average of likes <%= @media[:likes_average] %> </p>
-      <p>Average of comments <%= @media[:comments_average] %> </p>
-      <p>Average of engagement <%= @media[:engagement_average] %> </p>
-      <p>Average of likes of <%= current_user.username %> : <%= @user_averages[:likes_average] %> </p>
-      <p>Average of comments of <%= current_user.username %> : <%= @user_averages[:comments_average] %> </p>
-      <p>Average of engagement of <%= current_user.username %> : <%= @user_averages[:engagement_average] %> </p>
+      <div id="resp-table">
+        <div id="resp-table-caption">
+          Engagement for all the hashtags
+        </div>
+        <div id="resp-table-header">
+          <div class="table-header-cell">
+          HashTags / User
+          </div>
+          <div class="table-header-cell">
+          Engagement
+          </div>
+          <div class="table-header-cell">
+          Likes Average
+          </div>
+          <div class="table-header-cell">
+          Comments Average
+          </div>
+        </div>
+        <div id="resp-table-body">
+          <div class="resp-table-row">
+            <div class="table-body-cell">
+              <%= @tags_array %>
+            </div>
+            <div class="table-body-cell">
+              <%= @media[:engagement_average] %>
+            </div>
+            <div class="table-body-cell">
+              <%= @media[:likes_average] %>
+            </div>
+            <div class="table-body-cell">
+              <%= @media[:comments_average] %>
+            </div>
+          </div>
+          <div class="resp-table-row">
+            <div class="table-body-cell">
+              @<%= current_user.username %>
+            </div>
+            <div class="table-body-cell">
+              <%= @user_averages[:engagement_average] %>
+            </div>
+            <div class="table-body-cell">
+              <%= @user_averages[:likes_average] %>
+            </div>
+            <div class="table-body-cell">
+              <%= @user_averages[:comments_average] %>
+            </div>
+          </div>
+        </div>
+        <div id="resp-table-footer">
+          <div class="table-footer-cell">
+          </div>
+          <div class="table-footer-cell">
+          </div>
+          <div class="table-footer-cell">
+          </div>
+          <div class="table-footer-cell">
+          </div>
+        </div>
+      </div>
       <% @media[:edges_by_tags].each do |medium| %>
         <div class="col-xs-12 col-sm-6">
           <div class="card" style="background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.2)), url('<%= medium.node.display_url %>');">

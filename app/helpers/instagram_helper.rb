@@ -124,12 +124,20 @@ module InstagramHelper
         total_comments += medium.comments.count
       end
       return {
+        category: "user",
+        name: name,
+        url: "https://www.instagram.com/#{name}",
+        count: account.media.count,
         likes_average: media.size != 0 ? total_likes / media.size : 0,
         comments_average: media.size != 0 ? total_comments / media.size : 0,
         engagement_average: media.size != 0 ? (total_likes + total_comments) / media.size : 0
       }
     rescue
       return {
+        category: "user",
+        name: name,
+        url: "https://www.instagram.com/#{name}",
+        count: 0,
         likes_average: 0,
         comments_average: 0,
         engagement_average: 0
@@ -262,7 +270,7 @@ module InstagramHelper
 
   def sort_top_posts_media_for_each_tag_by_engagement_ratio(tags, username)
     top_posts_media_for_each_tag = search_top_posts_media_for_each_tag(tags)
-    # engagement = get_average_of_engagement_by_username(username)
+    top_posts_media_for_each_tag << get_average_of_engagement_by_username(username)
     top_posts_media_for_each_tag.sort! { |x,y| x[:engagement_average] <=> y[:engagement_average] }
   end
 
@@ -304,25 +312,22 @@ module InstagramHelper
               number_of_edges_found += 1
               edges_by_tags << edge
               total_likes += edge.node.edge_liked_by.count
-              puts ("Likes for edge #{edge.node.edge_liked_by.count}")
               total_comments += edge.node.edge_media_to_comment.count
-              puts ("Comments for edge #{edge.node.edge_media_to_comment.count}")
             end
           rescue
 
           end
         end
-        # puts("edges_by_tags = #{edges_by_tags}")
-        puts("number_of_edges_found = #{number_of_edges_found}")
         hash_result = {
-          hashtag_name: hashtag.name,
+          category: "hashtag",
+          name: hashtag.name,
+          url: "https://www.instagram.com/explore/tags/#{hashtag.name}",
           count: hashtag.edge_hashtag_to_media.count,
-          likes_average: total_likes / number_of_edges_found,
-          comments_average: total_comments / number_of_edges_found,
-          engagement_average: (total_likes + total_comments) / number_of_edges_found,
+          likes_average: number_of_edges_found != 0 ? total_likes / number_of_edges_found : 0,
+          comments_average: number_of_edges_found != 0 ? total_comments / number_of_edges_found : 0,
+          engagement_average: number_of_edges_found != 0 ? (total_likes + total_comments) / number_of_edges_found : 0,
           edges_by_tags: edges_by_tags
         }
-        puts("hash_result = #{hash_result}")
         return hash_result
       end
     end
