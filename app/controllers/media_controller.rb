@@ -10,7 +10,7 @@ class MediaController < ApplicationController
       limit = params["query"]["limit"].to_i
     end
     if tags
-      @tags_array = tags.split(/[ ,]/)
+      @tags_array = tags.split(/[ ,#]/)
       puts("tags == #{@tags_array}")
       top_posts = params["query"]["top_posts"]
       one_by_one = params["query"]["one_by_one"]
