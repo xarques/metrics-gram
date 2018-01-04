@@ -6,7 +6,7 @@
         <%= simple_fields_for :query do |o| %>
           <%= o.input :top_posts, as: :boolean, label: 'Search in top posts only', :input_html => { :checked => true } %>
           <%= o.input :one_by_one, as: :boolean, label: 'Search tag one by one', :input_html => { :checked => true } %>
-          <%= o.input :tags, as: :string, label: 'Tags' %>
+          <%= o.input :tags, as: :text, label: 'Tags' %>
           <%= o.input :limit, as: :integer, label: 'Max number of media to search in' %>
         <% end %>
         <%= f.submit 'Search' , class: "btn btn-primary" %>

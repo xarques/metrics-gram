@@ -246,10 +246,16 @@ module InstagramHelper
   end
 
   def clean_tags(tags)
-    tags.collect do |tag|
-      tag = tag.strip
-      tag.start_with?("#") ? tag[1..-1] : tag
+    clean_tags = []
+    tags.each do |tag|
+      tag = tag.strip.downcase
+      tag = tag.start_with?("#") ? tag[1..-1] : tag
+      if tag && tag.size > 0
+        clean_tags << tag
+      end
     end
+    puts("clean_tags = #{clean_tags}")
+    clean_tags
   end
 
   def search_media_by_tags(tags, limit=MAX_NUMBER_OF_MEDIA)
@@ -262,7 +268,8 @@ module InstagramHelper
 
   def search_top_posts_media_for_each_tag(tags, limit=MAX_NUMBER_OF_MEDIA)
     top_posts_media_for_each_tag = []
-    tags.each do |tag|
+    clean_tags = clean_tags(tags)
+    clean_tags.each do |tag|
       top_posts_media_for_each_tag << _search_media_by_tags([tag], "edge_hashtag_to_top_posts", limit)
     end
     top_posts_media_for_each_tag
@@ -293,19 +300,20 @@ module InstagramHelper
         total_comments = 0
         number_of_edges_found = 0
         puts ("Number of media available on this page: #{edges.size}/#{count}")
+        # Remove first tag of tags as it as already been taken into account for the first query
+        tags.pop
         edges.each do |edge|
           begin
             media_to_caption_text = edge.node.edge_media_to_caption.edges[0].node.text
             # puts("media_to_caption_text= #{media_to_caption_text}")
             all_tags = true
-            # Remove first tag of tags as it as already been taken into account for the first query
-            tags.pop
             tags.each do |tag|
               if media_to_caption_text.downcase =~ /##{tag.downcase}/
                 puts "Media #{edge.node.shortcode} contains tag #{tag.downcase}"
               else
                 puts "Media #{edge.node.shortcode} does not contain tag #{tag.downcase}"
                 all_tags = false
+                break
               end
             end
             if all_tags
